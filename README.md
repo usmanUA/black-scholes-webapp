@@ -53,3 +53,75 @@ aws configure   # set credentials and default region (eu-north-1)
 aws ec2 create-key-pair --key-name backend-key --query 'KeyMaterial' --output text > backend-key.pem
 chmod 400 backend-key.pem
 ```
+
+### 2. Clone the repository
+```bash
+git clone https://github.com/.git
+cd assignment3/infra
+npm install
+```
+
+### 3. Deploy infrastructure
+```bash
+cdk deploy
+```
+
+After ~2–3 minutes, note the Outputs:
+```
+InfraStack.FrontendBucketName = black-scholes-frontend-<account>
+InfraStack.BackendElasticIP   = <your-static-backend-ip>
+```
+
+**Note:** The backend uses an Elastic IP that remains constant across deployments. You only need to configure the frontend endpoint once.
+
+### 4. Configure frontend to point to backend
+
+Edit `.env.production` (or equivalent) before building:
+```
+VITE_BACKEND_URL=http://<BackendElasticIP>:8080
+```
+
+### 5. Deploy frontend
+```bash
+cd ../frontend
+npm install
+npm run build
+aws s3 sync dist s3://black-scholes-frontend- --delete
+aws s3 website s3://black-scholes-frontend-/ --index-document index.html
+```
+
+The site will be accessible at:
+```
+http://black-scholes-frontend-<account>.s3-website.eu-north-1.amazonaws.com
+```
+
+## 🧹 Tear Down
+
+When finished:
+```bash
+cd infra
+cdk destroy
+```
+
+If deletion fails due to S3 policies:
+
+- Empty the S3 bucket manually from the console.
+- Retry `cdk destroy`.
+
+## ⚙️ Notes & Limitations
+
+- **Static Backend IP:** The backend uses an Elastic IP that persists across deployments, so the frontend endpoint remains stable.
+- **CloudFront** is currently pending AWS account verification.
+- The backend container automatically pulls the latest image from ECR on deployment.
+- Frontend can be updated without re-deploying infrastructure using:
+```bash
+  aws s3 sync dist s3://black-scholes-frontend- --delete
+```
+- The solution is idempotent — re-deploying CDK does not break or duplicate resources.
+
+## 📊 Deliverables
+
+✅ Frontend React client (S3)  
+✅ Backend containerized Python + C++ API (EC2 + ECR)  
+✅ Infrastructure as Code (AWS CDK)  
+✅ Documentation (this README)
