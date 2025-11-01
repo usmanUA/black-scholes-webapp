@@ -38,6 +38,7 @@ export class InfraStack extends cdk.Stack {
 	    allowAllOutbound: true,
 	    description: 'Allow SSH and HTTP'
 	});
+
     sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'Allow SSH');
     sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(8080), 'Allow HTTP');
 
@@ -53,9 +54,23 @@ export class InfraStack extends cdk.Stack {
 	    role: ec2Role
 	});
 
-	new cdk.CfnOutput(this, 'InstancePublicIP', {
-	    value: ec2Instance.instancePublicIp
+    const eip = new ec2.CfnEIP(this, "BackendEIP", {
+	    domain: "vpc"
 	});
+
+    new ec2.CfnEIPAssociation(this, "EIPAssociation", {
+	    eip: eip.ref,
+	    instanceId: ec2Instance.instanceId
+	});
+
+    new cdk.CfnOutput(this, "BackendElasticIP", {
+	    value: eip.ref,
+	    description: "Static IP for backend"
+	});
+
+    new cdk.CfnOutput(this, 'InstancePublicIP', {
+	value: ec2Instance.instancePublicIp
+    });
 
     // NOTE: FRONTEND SETUP
     const siteBucket = new s3.Bucket(this, "FrontendBucket", {
