@@ -1,26 +1,29 @@
-# 🧮 Black-Scholes Derivatives Web Application
+# Black-Scholes Derivatives Web Application
 A simple Web Application using Infrastructure as Code (IaC)  
 **Cloud Provider:** AWS (Free Tier)  
 **IaC Tool:** AWS CDK (TypeScript)
 
 ## 📖 Overview
-This project implements a two-tier web application for computing and visualizing numerical errors in Black-Scholes derivative pricing methods.
-It demonstrates reproducible cloud deployment using Infrastructure as Code (IaC).
+This project implements a simple web application which computes (backend) and visualizes (frontend) numerical errors in Black-Scholes derivative pricing methods.
+The numerical errors are produced validating stable analytic greeks against the ones computed with:
+1. classical finite-differences
+2. complex-step differentiation 
+The main objective of the project is to demonstrate reproducible cloud deployment using Infrastructure as Code (IaC).
 
-## 🧩 Architecture
+## Architecture
 - **Frontend:** Vite + React + TypeScript hosted on S3 static website
-- **Backend:** Dockerized Python + C++ application hosted on EC2
+- **Backend:** Dockerized TypeScript + C++ application hosted on EC2
 - **IaC:** AWS CDK provisions all infrastructure
 
 **Data flow:**
 1. Frontend sends a request to the backend.
 2. Backend executes a Bash script (`run.sh`) that:
-   - Compiles and runs a C++ engine for Black-Scholes derivative computations.
+   - Compiles and runs a C++ engine for Black-Scholes derivative computations and validation.
    - Produces CSV files of analytic, finite-difference, and complex-step method errors.
-   - Runs a Python script to generate two plots from those CSVs.
+   - Runs a Python script to generate two plots (Delta and Gamma) from those CSVs.
 3. Backend serves the plots to the frontend, which renders them.
 
-## 🧱 Infrastructure
+## Infrastructure
 | Component | AWS Service | Purpose |
 |-----------|-------------|---------|
 | FrontendBucket | S3 (static website hosting) | Hosts compiled frontend build |
@@ -31,7 +34,7 @@ It demonstrates reproducible cloud deployment using Infrastructure as Code (IaC)
 | Security Group | AppSecurityGroup | Allows SSH (22) + HTTP (8080) inbound |
 | (optional) | CloudFront | (Planned) Global CDN distribution for frontend |
 
-## 🛠️ Tech Stack
+## Tech Stack
 | Layer | Technology |
 |-------|------------|
 | Frontend | React + Vite + TypeScript + TailwindCSS |
@@ -41,7 +44,7 @@ It demonstrates reproducible cloud deployment using Infrastructure as Code (IaC)
 | Visualization | Matplotlib |
 | OS tested | macOS Sequoia 15.x (cross-platform compatible) |
 
-## 🚀 Deployment Instructions
+## Deployment Instructions
 ### 1. Prerequisites
 Install:
 ```bash
@@ -56,8 +59,8 @@ chmod 400 backend-key.pem
 
 ### 2. Clone the repository
 ```bash
-git clone https://github.com/.git
-cd assignment3/infra
+git clone https://github.com/usmanUA/black-scholes-webapp.git
+cd black-scholes-webapp/infra
 npm install
 ```
 
@@ -76,7 +79,7 @@ InfraStack.BackendElasticIP   = <your-static-backend-ip>
 
 ### 4. Configure frontend to point to backend
 
-Edit `.env.production` (or equivalent) before building:
+Create `.env.production` before building:
 ```
 VITE_BACKEND_URL=http://<BackendElasticIP>:8080
 ```
@@ -86,7 +89,7 @@ VITE_BACKEND_URL=http://<BackendElasticIP>:8080
 cd ../frontend
 npm install
 npm run build
-aws s3 sync dist s3://black-scholes-frontend- --delete
+aws s3 sync dist s3://black-scholes-frontend-<account> --delete
 aws s3 website s3://black-scholes-frontend-/ --index-document index.html
 ```
 
@@ -121,7 +124,7 @@ If deletion fails due to S3 policies:
 
 ## 📊 Deliverables
 
-✅ Frontend React client (S3)  
-✅ Backend containerized Python + C++ API (EC2 + ECR)  
-✅ Infrastructure as Code (AWS CDK)  
-✅ Documentation (this README)
+- Frontend React client (S3)  
+- Backend containerized Python + C++ API (EC2 + ECR)  
+- Infrastructure as Code (AWS CDK)  
+- Documentation (this README)
