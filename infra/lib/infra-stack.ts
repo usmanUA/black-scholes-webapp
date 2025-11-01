@@ -59,5 +59,23 @@ export class InfraStack extends cdk.Stack {
 	    value: ec2Instance.instancePublicIp
 	});
 
+    // NOTE: FRONTEND SETUP
+    const siteBucket = new s3.Bucket(this, "FrontendBucket", {
+	    bucketName: `black-scholes-frontend-${this.account}`,
+	    removalPolicy: cdk.RemovalPolicy.DESTROY,
+	    autoDeleteObjects: true,
+	    blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
+	});
+
+    const distribution = new cloudfront.Distribution(this, "FrontendDistribution", {
+	    defaultBehavior: {
+		origin: new origins.S3Origin(siteBucket),
+		viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+	    },
+	    defaultRootObject: 'index.html'
+	});
+
+    new cdk.CfnOutput(this, "FrontendBucketName", { value: siteBucket.bucketName });
+    new cdk.CfnOutput(this, "CloudFrontURL", { value: `https://${distribution.distributionDomainName}`});
   }
 }
