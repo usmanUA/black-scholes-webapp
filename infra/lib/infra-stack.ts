@@ -1,7 +1,5 @@
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -62,20 +60,29 @@ export class InfraStack extends cdk.Stack {
     // NOTE: FRONTEND SETUP
     const siteBucket = new s3.Bucket(this, "FrontendBucket", {
 	    bucketName: `black-scholes-frontend-${this.account}`,
+	    websiteIndexDocument: 'index.html',
+	    publicReadAccess: true,
+	    blockPublicAccess: new s3.BlockPublicAccess({
+		blockPublicAcls: false,
+		ignorePublicAcls: false,
+		blockPublicPolicy: false,
+		restrictPublicBuckets: false
+	    }),
 	    removalPolicy: cdk.RemovalPolicy.DESTROY,
-	    autoDeleteObjects: true,
-	    blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
+	    autoDeleteObjects: true
 	});
 
-    const distribution = new cloudfront.Distribution(this, "FrontendDistribution", {
-	    defaultBehavior: {
-		origin: new origins.S3Origin(siteBucket),
-		viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-	    },
-	    defaultRootObject: 'index.html'
-	});
-
+    siteBucket.addToResourcePolicy(new iam.PolicyStatement({
+	    actions: [
+		's3:GetBucketTagging',
+		's3:GetBucketVersioning',
+		's3:GetLifecycleConfiguration',
+		's3:ListBucket',
+		"s3:DeleteObject"
+	    ],
+	    resources: [siteBucket.bucketArn, `${siteBucket.bucketArn}/*`],
+	    principals: [new iam.ServicePrincipal("lambda.amazonaws.com")]
+	}));
     new cdk.CfnOutput(this, "FrontendBucketName", { value: siteBucket.bucketName });
-    new cdk.CfnOutput(this, "CloudFrontURL", { value: `https://${distribution.distributionDomainName}`});
   }
 }
