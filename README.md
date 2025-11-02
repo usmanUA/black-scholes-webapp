@@ -3,7 +3,7 @@ A simple Web Application using Infrastructure as Code (IaC)
 **Cloud Provider:** AWS (Free Tier)  
 **IaC Tool:** AWS CDK (TypeScript)
 
-## 📖 Overview
+## Overview
 This project implements a simple web application which computes (backend) and visualizes (frontend) numerical errors in Black-Scholes derivative pricing methods.
 The numerical errors are produced validating stable analytic greeks against the ones computed with:
 1. classical finite-differences
@@ -98,7 +98,7 @@ The site will be accessible at:
 http://black-scholes-frontend-<account>.s3-website.eu-north-1.amazonaws.com
 ```
 
-## 🧹 Tear Down
+## Tear Down
 
 When finished:
 ```bash
@@ -111,7 +111,7 @@ If deletion fails due to S3 policies:
 - Empty the S3 bucket manually from the console.
 - Retry `cdk destroy`.
 
-## ⚙️ Notes & Limitations
+## Notes & Limitations
 
 - **Static Backend IP:** The backend uses an Elastic IP that persists across deployments, so the frontend endpoint remains stable.
 - **CloudFront** is currently pending AWS account verification.
@@ -122,7 +122,7 @@ If deletion fails due to S3 policies:
 ```
 - The solution is idempotent — re-deploying CDK does not break or duplicate resources.
 
-## 📊 Deliverables
+## Deliverables
 
 - Frontend React client (S3)  
 - Backend containerized Python + C++ API (EC2 + ECR)  
