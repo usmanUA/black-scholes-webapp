@@ -26,7 +26,7 @@ def read_csv_simple(filename):
     
     return data
 
-def analyze_and_plot(filename, scenario_name):
+def analyze_and_plot(filename):
     data = read_csv_simple(filename)
     
     # Plot Delta errors
@@ -45,7 +45,7 @@ def analyze_and_plot(filename, scenario_name):
     
     plt.xlabel('Relative step size (h_rel)', fontsize=11)
     plt.ylabel('Absolute error', fontsize=11)
-    plt.title(f'{scenario_name}: Delta Error vs Step Size', fontsize=12, fontweight='bold')
+    plt.title('Scenario 1: Delta Error vs Step Size', fontsize=12, fontweight='bold')
     plt.legend(fontsize=10)
     plt.grid(True, which='both', alpha=0.3, linestyle='--')
     plt.tight_layout()
@@ -72,7 +72,7 @@ def analyze_and_plot(filename, scenario_name):
     
     plt.xlabel('Relative step size (h_rel)', fontsize=11)
     plt.ylabel('Absolute error', fontsize=11)
-    plt.title(f'{scenario_name}: Gamma Error vs Step Size', fontsize=12, fontweight='bold')
+    plt.title('Scenario 2: Gamma Error vs Step Size', fontsize=12, fontweight='bold')
     plt.legend(fontsize=10)
     plt.grid(True, which='both', alpha=0.3, linestyle='--')
     plt.tight_layout()
@@ -82,7 +82,7 @@ def analyze_and_plot(filename, scenario_name):
     
     # Print summary statistics
     print(f"\n{'='*60}")
-    print(f"{scenario_name} Error Summary")
+    print("Scenario 1 Error Summary")
     print(f"{'='*60}")
     
     errors = {
@@ -105,7 +105,7 @@ def analyze_and_plot(filename, scenario_name):
 
 # Run both scenarios
 try:
-    analyze_and_plot('/app/data/bs_fd_vs_complex.csv', 'Scenario1')
+    analyze_and_plot('/app/data/bs_fd_vs_complex.csv')
     print("\n✓ All plots generated successfully!")
 except FileNotFoundError as e:
     print(f"Error: Could not find CSV file - {e}")

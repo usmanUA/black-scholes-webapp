@@ -33,3 +33,5 @@ EXPOSE 8080
 
 # START THE APPLICATION
 CMD ["node", "dist/server.js"]
+
+USER root

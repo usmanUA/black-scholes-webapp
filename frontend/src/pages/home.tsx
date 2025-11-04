@@ -23,12 +23,12 @@ const Home = () => {
 	};
 
 	return (
-		<div className='min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex flex-col items-center py-12 px-6 text-gray-800'>
-			<h1 className="text-4xl font-extrabold text-blue-700 mb-8 drop-shadow-sm">Black-Scholes Greeks Visualizer
+		<div className='min-h-screen bg-gradient-to-b from-red-50 to-blue-100 flex flex-col items-center py-12 px-6 text-gray-800'>
+			<h1 className="text-4xl font-extrabold text-orange-700 mb-8 drop-shadow-sm">Black-Scholes Greeks Visualizer
 			</h1>
 			<div className='max-2-3xl text-center leading-relaxed text-lg mb-10'>
 				<p className='mb-4'>
-					The <span className='font-semibold text-blue-700'>Black-Scholes model</span> is a cornerstone of modern option pricing. It expresses the theoretical price of European options as a function of several key parameters.
+					The <span className='font-semibold text-gray-700'>Black-Scholes model</span> is a cornerstone of modern option pricing. It expresses the theoretical price of European options as a function of several key parameters.
 				</p>
 				<p className="mb-4">
 					In this app, we validate three methods of computing sensitivities (Greeks) of the call price:
@@ -39,7 +39,7 @@ const Home = () => {
 					<li><strong>Complex Step (CS):</strong> Highly accurate derivative using complex arithmetic.</li>
 				</ul>
 
-				<h2 className='text-xl font-semibold mt-8 mb-2 text-blue-700'>Validation Scenarios</h2>
+				<h2 className='text-xl font-semibold mt-8 mb-2 text-orange-700'>Validation Scenarios</h2>
 				<div className='text-left bg-white p-6 rounded-xl shadow-lg'>
 					<p className='font-semibold'>Scenario 1 - ATM Reference:</p>
 					<p className='text-gray-700'>S = 100, K = 100, r = q = 0, σ = 0.20, T = 1</p>
