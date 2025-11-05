@@ -7,11 +7,12 @@ A simple Web Application using Infrastructure as Code (IaC)
 This project implements a simple web application which computes (backend) and visualizes (frontend) numerical errors in Black-Scholes derivative pricing methods.
 The numerical errors are produced validating stable analytic greeks against the ones computed with:
 1. classical finite-differences
-2. complex-step differentiation 
+2. complex-step differentiation
+   
 The main objective of the project is to demonstrate reproducible cloud deployment using Infrastructure as Code (IaC).
 
 ## Architecture
-- **Frontend:** Vite + React + TypeScript hosted on S3 static website
+- **Frontend:** Vite + React + TypeScript hosted on S3 as CloudFront distribution
 - **Backend:** Dockerized TypeScript + C++ application hosted on EC2
 - **IaC:** AWS CDK provisions all infrastructure
 
@@ -26,13 +27,12 @@ The main objective of the project is to demonstrate reproducible cloud deploymen
 ## Infrastructure
 | Component | AWS Service | Purpose |
 |-----------|-------------|---------|
-| FrontendBucket | S3 (static website hosting) | Hosts compiled frontend build |
+| FrontendBucket | S3 (CloudFront distribution) | Hosts compiled frontend build |
 | BackendServer | EC2 (Amazon Linux 2023) | Runs Dockerized backend container |
 | ElasticIP | Elastic IP | Provides static public IP for backend |
 | ECR Repository | Elastic Container Registry | Stores backend Docker image |
 | IAM Role | EC2Role | Grants EC2 permission to pull ECR images & use SSM |
-| Security Group | AppSecurityGroup | Allows SSH (22) + HTTP (8080) inbound |
-| (optional) | CloudFront | (Planned) Global CDN distribution for frontend |
+| Security Group | AppSecurityGroup | Allows SSH (22) + HTTP (80) inbound |
 
 ## Tech Stack
 | Layer | Technology |
@@ -42,17 +42,17 @@ The main objective of the project is to demonstrate reproducible cloud deploymen
 | Infrastructure | AWS CDK v2 (TypeScript) |
 | Containerization | Docker + ECR |
 | Visualization | Matplotlib |
-| OS tested | macOS Sequoia 15.x (cross-platform compatible) |
 
 ## Deployment Instructions
 ### 1. Prerequisites
+- **Node.js 18**
+- **AWS CLI (configured with admin priveleges) + AWS CDK v2**
 Install:
 ```bash
-# Node.js 18+ and AWS CLI
 npm install -g aws-cdk
-aws configure   # set credentials and default region (eu-north-1)
+aws configure   # set your credentials and default region (eu-north-1) - make sure you have root priveleges for necessary IAM roles and permissions
 
-# (Optional) Create key pair for SSH into backend
+# (Optional) Create key pair for SSH into backend to ssh into EC2 remotely
 aws ec2 create-key-pair --key-name backend-key --query 'KeyMaterial' --output text > backend-key.pem
 chmod 400 backend-key.pem
 ```
@@ -63,39 +63,57 @@ git clone https://github.com/usmanUA/black-scholes-webapp.git
 cd black-scholes-webapp/infra
 npm install
 ```
+### 3. Bootstrap the CDK Environment (Once)
+Before the first deployment in a new AWS account or region:
 
-### 3. Deploy infrastructure
+```bash
+cdk bootstrap aws://<your-account-id>/eu-north-1
+```
+
+### 4. Deploy infrastructure
+Deploy all backend (EC2 + EIP) and frontend (S3 + CloudFront) resources:
+
 ```bash
 cdk deploy
 ```
 
-After ~2–3 minutes, note the Outputs:
+After ~2–3 minutes, note the CloudFormation Outputs:
 ```
-InfraStack.FrontendBucketName = black-scholes-frontend-<account>
-InfraStack.BackendElasticIP   = <your-static-backend-ip>
+Outputs:
+InfraStack.BackendElasticIP   = <static-backend-ip>
+InfraStack.CloudFrontURL      = https://<your-cloudfront-id>.cloudfront.net
+InfraStack.FrontendBucketName = black-scholes-frontend-<account-id>
 ```
 
 **Note:** The backend uses an Elastic IP that remains constant across deployments. You only need to configure the frontend endpoint once.
 
-### 4. Configure frontend to point to backend
+### 5. Configure frontend to point to backend
 
 Create `.env.production` before building:
 ```
-VITE_BACKEND_URL=http://<BackendElasticIP>:8080
+VITE_BACKEND_URL="https://<your-cloudfront-id>.cloudfront.net"
 ```
+This ensures the frontend routes API calls through CloudFront → DuckDNS → EC2 backend.
 
-### 5. Deploy frontend
+### 6. Build and Deploy frontend
 ```bash
 cd ../frontend
 npm install
 npm run build
-aws s3 sync dist s3://black-scholes-frontend-<account> --delete
-aws s3 website s3://black-scholes-frontend-/ --index-document index.html
+aws s3 sync dist s3://black-scholes-frontend-<account-id> --delete
 ```
 
-The site will be accessible at:
+CDK already configured CloudFront to serve this bucket, so the app will be live at:
 ```
-http://black-scholes-frontend-<account>.s3-website.eu-north-1.amazonaws.com
+https://<your-cloudfront-id>.cloudfront.net
+```
+
+### 7. Verify Deployment
+- **Frontend**: Open the CloudFront URL in your browser.
+- **Backend**: Check backend connectivity with:
+- 
+```bash
+curl -v http://blackscholesapp.duckdns.org/api/run?scenario=1
 ```
 
 ## Tear Down
@@ -106,25 +124,15 @@ cd infra
 cdk destroy
 ```
 
-If deletion fails due to S3 policies:
+If deletion fails due to S3 or CloudFront propagation detlays:
 
 - Empty the S3 bucket manually from the console.
 - Retry `cdk destroy`.
 
-## Notes & Limitations
+## Notes
 
-- **Static Backend IP:** The backend uses an Elastic IP that persists across deployments, so the frontend endpoint remains stable.
-- **CloudFront** is currently pending AWS account verification.
-- The backend container automatically pulls the latest image from ECR on deployment.
-- Frontend can be updated without re-deploying infrastructure using:
-```bash
-  aws s3 sync dist s3://black-scholes-frontend- --delete
-```
-- The solution is idempotent — re-deploying CDK does not break or duplicate resources.
+- **No manual IAM configuration** is required. CDK provisions roles and policies required for the infrastructure automatically (Root roles and permissions are still required separately.
+- **Elastic IP** ensures the backend IP remains constant across redeploys.
+- **DuckDNS** maps that IP to a fixed domain (blackscholesapp.duckdns.org), used by CloudFront.
+- **CloudFront** provides HTTPS and global caching for the frontend + /api routes.
 
-## Deliverables
-
-- Frontend React client (S3)  
-- Backend containerized Python + C++ API (EC2 + ECR)  
-- Infrastructure as Code (AWS CDK)  
-- Documentation (this README)
