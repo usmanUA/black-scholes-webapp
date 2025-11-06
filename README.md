@@ -103,10 +103,24 @@ cd ../frontend
 npm install
 npm run build
 
-# Clear cache (CloudFront might still have the previous cloudfront url
-aws cloudfront create-invalidation \
-  --distribution-id <YOUR_DISTRIBUTION_ID> \
-  --paths "/*"
+# Clear CloudFront cache (optional, only if frontend changes don't appear)
+# To find your distribution ID:
+aws cloudfront list-distributions \
+  --query "DistributionList.Items[?contains(DomainName, '<your-cloudfront-domain>')].{Id:Id,DomainName:DomainName}" \
+  --output table
+
+# Example:
+# ------------------------------------------------------------------
+# |                       ListDistributions                        |
+# +---------------------------------------+------------------------+
+# |            DomainName                 |        Id              |
+# +---------------------------------------+------------------------+
+# | <your-cloudfront-id>.cloudfront.net   | <YOUR_DISTRIBUTION_ID> |
+# +---------------------------------------+------------------------+
+
+# Then run (replace with your Id)
+aws cloudfront create-invalidation --distribution-id <YOUR_DISTRIBUTION_ID> --paths "/*"
+
 
 aws s3 sync dist s3://black-scholes-frontend-<account-id> --delete
 ```
