@@ -50,17 +50,19 @@ The main objective of the project is to demonstrate reproducible cloud deploymen
 Install:
 ```bash
 npm install -g aws-cdk
-aws configure   # set your credentials and default region (eu-north-1) - make sure you have root priveleges for necessary IAM roles and permissions
-
-# (Optional) Create key pair for SSH into backend to ssh into EC2 remotely
-aws ec2 create-key-pair --key-name backend-key --query 'KeyMaterial' --output text > backend-key.pem
-chmod 400 backend-key.pem
+aws configure   # set your credentials and default region (eu-north-1) - make sure you have
+# root priveleges for necessary IAM roles and permissions
 ```
 
 ### 2. Clone the repository
 ```bash
 git clone https://github.com/usmanUA/black-scholes-webapp.git
 cd black-scholes-webapp/infra
+
+# (Optional) Create key pair for SSH into backend to ssh into EC2 remotely
+aws ec2 create-key-pair --key-name backend-key --query 'KeyMaterial' --output text > backend-key.pem
+chmod 400 backend-key.pem
+
 npm install
 ```
 ### 3. Bootstrap the CDK Environment (Once)
