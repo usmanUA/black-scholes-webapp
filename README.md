@@ -102,6 +102,12 @@ This ensures the frontend routes API calls through CloudFront → DuckDNS → EC
 cd ../frontend
 npm install
 npm run build
+
+# Clear cache (CloudFront might still have the previous cloudfront url
+aws cloudfront create-invalidation \
+  --distribution-id <YOUR_DISTRIBUTION_ID> \
+  --paths "/*"
+
 aws s3 sync dist s3://black-scholes-frontend-<account-id> --delete
 ```
 
